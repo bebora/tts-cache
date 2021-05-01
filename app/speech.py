@@ -26,9 +26,9 @@ def create_speech_router(audio_lock: Lock, counter_lock: Lock, settings: Setting
         real_key = f"{settings.audio_folder}/{real_key_suffix}"
 
         client: Minio = Minio(
-            Settings().minio_url,
-            access_key=Settings().minio_access_key,
-            secret_key=Settings().minio_secret_key,
+            settings.minio_url,
+            access_key=settings.minio_access_key,
+            secret_key=settings.minio_secret_key,
             secure=False,
         )
 
@@ -60,7 +60,7 @@ def create_speech_router(audio_lock: Lock, counter_lock: Lock, settings: Setting
 
             if not audio_object_exists:
                 new_counter = counter + len(text)
-                if new_counter > Settings().gcp_counter_limit:
+                if new_counter > settings.gcp_counter_limit:
                     # TODO handle limit reached
                     return Response(status_code=503)
 
