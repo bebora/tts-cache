@@ -9,7 +9,9 @@ from app.settings import Settings
 from app.utils import object_exists, obtain_audio
 
 
-def create_speech_router(audio_lock: Lock, counter_lock: Lock, settings: Settings) -> APIRouter:
+def create_speech_router(
+    audio_lock: Lock, counter_lock: Lock, settings: Settings
+) -> APIRouter:
     router = APIRouter()
 
     @router.get("/")
@@ -44,15 +46,23 @@ def create_speech_router(audio_lock: Lock, counter_lock: Lock, settings: Setting
             if not audio_object_exists:
                 content = obtain_audio(text)
 
-                client.put_object(settings.bucket_name, real_key, io.BytesIO(content), len(content))
-                print(f"'Successfully uploaded object '{text}' to bucket '{settings.bucket_name}'.")
+                client.put_object(
+                    settings.bucket_name, real_key, io.BytesIO(content), len(content)
+                )
+                print(
+                    f"'Successfully uploaded object '{text}' to bucket '{settings.bucket_name}'."
+                )
 
         counter = 0
         with counter_lock:
-            counter_object_exists = object_exists(client, settings.bucket_name, settings.counter_name)
+            counter_object_exists = object_exists(
+                client, settings.bucket_name, settings.counter_name
+            )
             if counter_object_exists:
                 try:
-                    counter_response = client.get_object(settings.bucket_name, settings.counter_name)
+                    counter_response = client.get_object(
+                        settings.bucket_name, settings.counter_name
+                    )
                     counter = int(counter_response.data)
                 finally:
                     counter_response.close()
@@ -68,7 +78,12 @@ def create_speech_router(audio_lock: Lock, counter_lock: Lock, settings: Setting
                 counter_str = str(counter)
                 counter_bytes = bytes(counter_str, "utf-8")
                 counter_stream = io.BytesIO(counter_bytes)
-                client.put_object(settings.bucket_name, settings.counter_name, counter_stream, len(counter_bytes))
+                client.put_object(
+                    settings.bucket_name,
+                    settings.counter_name,
+                    counter_stream,
+                    len(counter_bytes),
+                )
 
         try:
             key_response = client.get_object(settings.bucket_name, real_key)
