@@ -13,14 +13,14 @@ def create_speech_router(audio_lock: Lock, counter_lock: Lock, settings: Setting
     router = APIRouter()
 
     @router.get("/")
-    async def read_root() -> dict:
+    def read_root() -> dict:
         message = (
             f"Hello world! From FastAPI running on Uvicorn with Gunicorn. Using Python"
         )
         return {"message": message}
 
     @router.get("/speech/")
-    async def speech(text: str = "Example") -> Response:
+    def speech(text: str = "Example") -> Response:
         real_key_suffix_bytes = base64.b64encode(text.encode("utf-8"))
         real_key_suffix = str(real_key_suffix_bytes, "utf-8")
         real_key = f"{settings.audio_folder}/{real_key_suffix}"
