@@ -19,7 +19,11 @@ docker run -p 9000:9000 \
 ```
 You can see the minio web interface at http://127.0.0.1:9000/minio/
 
-Launch the FastAPI server from the main directory with
+Launch the FastAPI server from the main directory with uvicorn
 ```bash
-uvicorn app:app --reload --app-dir app
+uvicorn --factory app.app:create_app --reload
+```
+or with Gunicorn
+```bash
+gunicorn -k uvicorn.workers.UvicornWorker "app.app:create_app()"
 ```
