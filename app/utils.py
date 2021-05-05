@@ -1,5 +1,6 @@
 import io
 
+from fastapi.logger import logger as fastapi_logger
 from minio import Minio
 from minio.error import S3Error
 from pydantic import BaseModel
@@ -10,13 +11,13 @@ class MinioCounterTags(BaseModel):
 
 
 def object_exists(client: Minio, bucket_name: str, object_name: str) -> bool:
-    print(f"Checking '{object_name}'")
+    fastapi_logger.debug(f"Checking '{object_name}'")
     result = False
     try:
         client.stat_object(bucket_name, object_name)
         result = True
     except S3Error as ex:
-        print(ex)
+        fastapi_logger.error(ex)
     return result
 
 
