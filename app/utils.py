@@ -10,6 +10,10 @@ class MinioCounterTags(BaseModel):
     working_month: str
 
 
+class AudioFetchException(Exception):
+    pass
+
+
 def object_exists(client: Minio, bucket_name: str, object_name: str) -> bool:
     fastapi_logger.debug(f"Checking '{object_name}'")
     result = False
