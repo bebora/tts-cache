@@ -21,7 +21,10 @@ def object_exists(client: Minio, bucket_name: str, object_name: str) -> bool:
         client.stat_object(bucket_name, object_name)
         result = True
     except S3Error as ex:
-        fastapi_logger.error(ex)
+        if ex.code == "NoSuchKey":
+            fastapi_logger.debug(ex)
+        else:
+            fastapi_logger.error(ex)
     return result
 
 
