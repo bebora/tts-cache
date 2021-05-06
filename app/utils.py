@@ -2,6 +2,7 @@ import io
 
 from fastapi.logger import logger as fastapi_logger
 from minio import Minio
+from minio.commonconfig import Tags
 from minio.error import S3Error
 from pydantic import BaseModel
 
@@ -40,9 +41,12 @@ def get_counter_value(
 ) -> int:
     tags: MinioCounterTags = client.get_object_tags(bucket_name, counter_name)
     # Reset counter if a new month started
+    if tags is None:
+        tags = MinioCounterTags(working_month="")
     if tags.working_month != working_month:
-        tags.working_month = working_month
-        client.set_object_tags(bucket_name, counter_name, tags)
+        new_tags = Tags.new_object_tags()
+        new_tags.working_month = working_month
+        client.set_object_tags(bucket_name, counter_name, new_tags)
         counter_stream = io.BytesIO(b"0")
         client.put_object(bucket_name, counter_name, counter_stream, len(b"0"))
         return 0
