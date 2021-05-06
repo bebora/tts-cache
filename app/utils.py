@@ -31,7 +31,7 @@ def object_exists(client: Minio, bucket_name: str, object_name: str) -> bool:
 
 # TODO fetch real audio
 def obtain_audio(text: str) -> bytes:
-    with open("example.mp3", "rb") as fp:
+    with open("example.opus", "rb") as fp:
         content = fp.read()
     return content
 

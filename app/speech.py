@@ -113,7 +113,7 @@ def create_speech_router(
                 key_response.release_conn()
 
             fastapi_logger.debug("Media served")
-            return Response(stored_content, status_code=200, media_type="audio/mp3")
+            return Response(stored_content, status_code=200, media_type="audio/opus")
         except Exception as e:
             fastapi_logger.error(f"{e}")
             return Response("Unable to serve content", status_code=500)
