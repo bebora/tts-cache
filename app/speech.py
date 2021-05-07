@@ -9,8 +9,12 @@ from minio import Minio
 from pydantic import BaseModel
 
 from app.settings import Settings
-from app.utils import (AudioFetchException, get_counter_value, object_exists,
-                       obtain_audio)
+from app.utils import (
+    AudioFetchException,
+    get_counter_value,
+    object_exists,
+    obtain_gcp_audio,
+)
 
 
 class AudioRequest(BaseModel):
@@ -18,7 +22,7 @@ class AudioRequest(BaseModel):
 
 
 def create_speech_router(
-        audio_lock: Lock, counter_lock: Lock, settings: Settings
+    audio_lock: Lock, counter_lock: Lock, settings: Settings
 ) -> APIRouter:
     router = APIRouter()
 
@@ -88,8 +92,14 @@ def create_speech_router(
             # but the counter should never underestimate the Cloud provider usage
             if not audio_object_already_exists:
                 try:
-                    content = obtain_audio(text)
-                except AudioFetchException:
+                    content = obtain_gcp_audio(
+                        text,
+                        settings.gcp_language,
+                        settings.gcp_voice_name,
+                        settings.google_application_credentials,
+                    )
+                except AudioFetchException as e:
+                    fastapi_logger.error(e)
                     return Response(
                         "Unable to obtain audio content from content provider",
                         status_code=500,

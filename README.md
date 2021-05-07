@@ -5,9 +5,10 @@ Create a `.env` file with the following properties
 MINIO_URL="127.0.0.1:9000"
 MINIO_ACCESS_KEY=REPLACEME
 MINIO_SECRET_KEY=REPLACEME
-GCP_COUNTER_LIMIT=1000000
-GCP_LANGUAGE=de
-GCP_VOICE_NAME="de-DE-Wavenet-B"
+GCP_COUNTER_LIMIT=500000
+GCP_LANGUAGE="de-DE"
+GCP_VOICE_NAME="de-DE-Wavenet-D"
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/google/application/credentials.json
 ```
 Create a folder `/mnt/minio` and start minio with this command
 ```bash

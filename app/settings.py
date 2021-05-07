@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     gcp_counter_limit: int
     gcp_language: str
     gcp_voice_name: str
+    google_application_credentials: str
 
     class Config:
         env_file = ".env"

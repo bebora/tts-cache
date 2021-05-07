@@ -1,6 +1,7 @@
 import io
 
 from fastapi.logger import logger as fastapi_logger
+from google.cloud import texttospeech
 from minio import Minio
 from minio.commonconfig import Tags
 from minio.error import S3Error
@@ -29,11 +30,33 @@ def object_exists(client: Minio, bucket_name: str, object_name: str) -> bool:
     return result
 
 
-# TODO fetch real audio
-def obtain_audio(text: str) -> bytes:
+def obtain_local_audio(text: str) -> bytes:
     with open("example.opus", "rb") as fp:
         content = fp.read()
     return content
+
+
+def obtain_gcp_audio(
+    text: str, language_code: str, voice_name: str, credentials: str
+) -> bytes:
+    client = texttospeech.TextToSpeechClient.from_service_account_json(credentials)
+
+    synthesis_input = texttospeech.SynthesisInput({"text": text})
+    voice = texttospeech.VoiceSelectionParams(
+        {"language_code": language_code, "name": voice_name}
+    )
+    audio_config = texttospeech.AudioConfig(
+        {"audio_encoding": texttospeech.AudioEncoding.OGG_OPUS}
+    )
+
+    try:
+        response = client.synthesize_speech(
+            input=synthesis_input, voice=voice, audio_config=audio_config
+        )
+    except Exception as e:
+        raise AudioFetchException(e)
+
+    return response.audio_content
 
 
 def get_counter_value(
