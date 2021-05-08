@@ -9,12 +9,8 @@ from minio import Minio
 from pydantic import BaseModel
 
 from app.settings import Settings
-from app.utils import (
-    AudioFetchException,
-    get_counter_value,
-    object_exists,
-    obtain_gcp_audio,
-)
+from app.utils import (AudioFetchException, get_counter_value, object_exists,
+                       obtain_gcp_audio)
 
 
 class AudioRequest(BaseModel):
@@ -81,11 +77,13 @@ def create_speech_router(
                     counter_str = str(counter)
                     counter_bytes = bytes(counter_str, "utf-8")
                     counter_stream = io.BytesIO(counter_bytes)
+                    counter_tags = {"working_month": working_month}
                     client.put_object(
                         settings.bucket_name,
                         settings.counter_name,
                         counter_stream,
                         len(counter_bytes),
+                        tags=counter_tags,
                     )
 
             # an object may be fetched multiple times,

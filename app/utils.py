@@ -10,10 +10,6 @@ from pydantic import BaseModel
 from urllib3.response import HTTPResponse
 
 
-class MinioCounterTags(BaseModel):
-    working_month: str
-
-
 class AudioFetchException(Exception):
     pass
 
@@ -64,16 +60,19 @@ def obtain_gcp_audio(
 def get_counter_value(
     client: Minio, bucket_name: str, counter_name: str, working_month: str
 ) -> int:
-    tags: MinioCounterTags = client.get_object_tags(bucket_name, counter_name)
+    tags: Tags = client.get_object_tags(bucket_name, counter_name)
     # Reset counter if a new month started
-    if tags is None:
-        tags = MinioCounterTags(working_month="")
-    if tags.working_month != working_month:
+    if tags is None or "working_month" not in tags.keys():
+        tags = Tags.new_object_tags()
+        tags["working_month"] = ""
+    if tags["working_month"] != working_month:
         new_tags = Tags.new_object_tags()
-        new_tags.working_month = working_month
+        new_tags["working_month"] = working_month
         client.set_object_tags(bucket_name, counter_name, new_tags)
         counter_stream = io.BytesIO(b"0")
-        client.put_object(bucket_name, counter_name, counter_stream, len(b"0"))
+        client.put_object(
+            bucket_name, counter_name, counter_stream, len(b"0"), tags=new_tags
+        )
         return 0
     else:
         counter_response: Optional[HTTPResponse] = None
