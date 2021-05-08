@@ -9,6 +9,7 @@ GCP_COUNTER_LIMIT=500000
 GCP_LANGUAGE="de-DE"
 GCP_VOICE_NAME="de-DE-Wavenet-D"
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/google/application/credentials.json
+AUDIO_EXPIRY=365
 ```
 Create a folder `/mnt/minio` and start minio with this command
 ```bash

@@ -6,6 +6,8 @@ from threading import Lock
 from fastapi import APIRouter, Response
 from fastapi.logger import logger as fastapi_logger
 from minio import Minio
+from minio.commonconfig import ENABLED, Filter, Tags
+from minio.lifecycleconfig import Expiration, LifecycleConfig, Rule
 from pydantic import BaseModel
 
 from app.settings import Settings
@@ -48,6 +50,17 @@ def create_speech_router(
             found = client.bucket_exists(f"{settings.bucket_name}")
             if not found:
                 client.make_bucket(settings.bucket_name)
+                config = LifecycleConfig(
+                    [
+                        Rule(
+                            ENABLED,
+                            rule_filter=Filter(prefix="audio/"),
+                            rule_id="speech-expiry",
+                            expiration=Expiration(days=settings.audio_expiry),
+                        ),
+                    ],
+                )
+                client.set_bucket_lifecycle(settings.bucket_name, config)
             else:
                 fastapi_logger.debug(f"Bucket '{settings.bucket_name}' already exists")
 

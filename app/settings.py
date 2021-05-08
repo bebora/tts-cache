@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     gcp_language: str
     gcp_voice_name: str
     google_application_credentials: str
+    audio_expiry: int
 
     class Config:
         env_file = ".env"
