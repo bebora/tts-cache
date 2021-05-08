@@ -79,7 +79,8 @@ def create_speech_router(
                     counter_str = str(counter)
                     counter_bytes = bytes(counter_str, "utf-8")
                     counter_stream = io.BytesIO(counter_bytes)
-                    counter_tags = {"working_month": working_month}
+                    counter_tags = Tags.new_object_tags()
+                    counter_tags["working_month"] = working_month
                     client.put_object(
                         settings.bucket_name,
                         settings.counter_name,
