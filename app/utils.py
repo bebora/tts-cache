@@ -57,22 +57,24 @@ def obtain_gcp_audio(
     return response.audio_content
 
 
+def initialize_counter(
+    client: Minio, bucket_name: str, counter_name: str, working_month: str
+) -> None:
+    new_tags = Tags.new_object_tags()
+    new_tags["working_month"] = working_month
+    counter_stream = io.BytesIO(b"0")
+    client.put_object(
+        bucket_name, counter_name, counter_stream, len(b"0"), tags=new_tags
+    )
+
+
 def get_counter_value(
     client: Minio, bucket_name: str, counter_name: str, working_month: str
 ) -> int:
     tags: Tags = client.get_object_tags(bucket_name, counter_name)
     # Reset counter if a new month started
-    if tags is None or "working_month" not in tags.keys():
-        tags = Tags.new_object_tags()
-        tags["working_month"] = ""
-    if tags["working_month"] != working_month:
-        new_tags = Tags.new_object_tags()
-        new_tags["working_month"] = working_month
-        client.set_object_tags(bucket_name, counter_name, new_tags)
-        counter_stream = io.BytesIO(b"0")
-        client.put_object(
-            bucket_name, counter_name, counter_stream, len(b"0"), tags=new_tags
-        )
+    if tags is None or tags.get("working_month", "") != working_month:
+        initialize_counter(client, bucket_name, counter_name, working_month)
         return 0
     else:
         counter_response: Optional[HTTPResponse] = None

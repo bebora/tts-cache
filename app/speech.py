@@ -9,8 +9,8 @@ from minio import Minio
 from pydantic import BaseModel
 
 from app.settings import Settings
-from app.utils import (AudioFetchException, get_counter_value, object_exists,
-                       obtain_gcp_audio)
+from app.utils import (AudioFetchException, get_counter_value,
+                       initialize_counter, object_exists, obtain_gcp_audio)
 
 
 class AudioRequest(BaseModel):
@@ -65,6 +65,8 @@ def create_speech_router(
                         settings.counter_name,
                         working_month,
                     )
+                else:
+                    initialize_counter(client, settings.bucket_name, settings.counter_name, working_month)
                 audio_object_already_exists = object_exists(
                     client, settings.bucket_name, real_key
                 )
