@@ -1,4 +1,5 @@
 import io
+from typing import Optional
 
 from fastapi.logger import logger as fastapi_logger
 from google.cloud import texttospeech
@@ -6,6 +7,7 @@ from minio import Minio
 from minio.commonconfig import Tags
 from minio.error import S3Error
 from pydantic import BaseModel
+from urllib3.response import HTTPResponse
 
 
 class MinioCounterTags(BaseModel):
@@ -39,7 +41,7 @@ def obtain_local_audio(text: str) -> bytes:
 def obtain_gcp_audio(
     text: str, language_code: str, voice_name: str, credentials: str
 ) -> bytes:
-    client = texttospeech.TextToSpeechClient.from_service_account_json(credentials)
+    client = texttospeech.TextToSpeechClient.from_service_account_file(credentials)
 
     synthesis_input = texttospeech.SynthesisInput({"text": text})
     voice = texttospeech.VoiceSelectionParams(
@@ -74,10 +76,12 @@ def get_counter_value(
         client.put_object(bucket_name, counter_name, counter_stream, len(b"0"))
         return 0
     else:
+        counter_response: Optional[HTTPResponse] = None
         try:
             counter_response = client.get_object(bucket_name, counter_name)
             counter = int(counter_response.data)
         finally:
-            counter_response.close()
-            counter_response.release_conn()
+            if counter_response:
+                counter_response.close()
+                counter_response.release_conn()
         return counter
