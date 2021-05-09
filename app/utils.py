@@ -6,7 +6,6 @@ from google.cloud import texttospeech
 from minio import Minio
 from minio.commonconfig import Tags
 from minio.error import S3Error
-from pydantic import BaseModel
 from urllib3.response import HTTPResponse
 
 

@@ -11,8 +11,13 @@ from minio.lifecycleconfig import Expiration, LifecycleConfig, Rule
 from pydantic import BaseModel
 
 from app.settings import Settings
-from app.utils import (AudioFetchException, get_counter_value,
-                       initialize_counter, object_exists, obtain_gcp_audio)
+from app.utils import (
+    AudioFetchException,
+    get_counter_value,
+    initialize_counter,
+    object_exists,
+    obtain_gcp_audio,
+)
 
 
 class AudioRequest(BaseModel):
@@ -33,7 +38,7 @@ def create_speech_router(
 
     @router.post("/speech/")
     def speech(audio_request: AudioRequest) -> Response:
-        text = audio_request.text
+        text = audio_request.text.lower()
         real_key_suffix_bytes = base64.b64encode(text.encode("utf-8"))
         real_key_suffix = str(real_key_suffix_bytes, "utf-8")
         real_key = f"{settings.audio_folder}/{real_key_suffix}"
@@ -79,7 +84,12 @@ def create_speech_router(
                         working_month,
                     )
                 else:
-                    initialize_counter(client, settings.bucket_name, settings.counter_name, working_month)
+                    initialize_counter(
+                        client,
+                        settings.bucket_name,
+                        settings.counter_name,
+                        working_month,
+                    )
                 audio_object_already_exists = object_exists(
                     client, settings.bucket_name, real_key
                 )
