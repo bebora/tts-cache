@@ -1,7 +1,7 @@
-import base64
 import io
 from datetime import datetime
 from threading import Lock
+from urllib.parse import quote
 
 from fastapi import APIRouter, Response
 from fastapi.logger import logger as fastapi_logger
@@ -39,8 +39,7 @@ def create_speech_router(
     @router.post("/speech/")
     def speech(audio_request: AudioRequest) -> Response:
         text = audio_request.text.lower()
-        real_key_suffix_bytes = base64.b64encode(text.encode("utf-8"))
-        real_key_suffix = str(real_key_suffix_bytes, "utf-8")
+        real_key_suffix = quote(text, safe="")
         real_key = f"{settings.audio_folder}/{real_key_suffix}"
 
         client: Minio = Minio(
