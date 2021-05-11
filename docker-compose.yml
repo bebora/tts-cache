@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  fastapi:
+    build: .
+    ports:
+      - "22243:80"
+    depends_on:
+      - minio
+    env_file:
+      - .env.docker
+    secrets:
+      - google_json
+    environment:
+      - APP_MODULE=app.app:create_app()
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    volumes:
+      - /mnt/minio:/data
+    env_file:
+      - .env.docker
+    command: server /data
+secrets:
+  google_json:
+    file: ./CHANGEME.json
