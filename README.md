@@ -12,12 +12,23 @@ Create a `.env` file with the following properties
 MINIO_URL="127.0.0.1:9000"
 MINIO_ACCESS_KEY=REPLACEME
 MINIO_SECRET_KEY=REPLACEME
-GCP_COUNTER_LIMIT=500000
-GCP_LANGUAGE="de-DE"
-GCP_VOICE_NAME="de-DE-Wavenet-D"
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/google/application/credentials.json
-AUDIO_EXPIRY=365
 ```
+Create a `config.json` file with the following structure
+```json
+{
+  "gcp_counter_limit": 500000,
+  "languages": {
+    "de": {
+      "gcp_language": "de-DE",
+      "gcp_voice_name": "de-DE-Wavenet-D"
+    }
+  },
+  "google_application_credentials": "/path/to/google/application/credentials.json",
+  "audio_expiry": 365
+}
+```
+Languages can be enabled by adding an entry in `languages` with appropriate `gcp_language` and `gcp_voice_name` fields.
+
 Create a folder `/mnt/minio` and start minio with this command
 ```bash
 docker run -p 9000:9000 \
@@ -42,12 +53,23 @@ Create a `.env.docker` file with the following properties
 MINIO_URL=minio:9000
 MINIO_ACCESS_KEY=REPLACEME
 MINIO_SECRET_KEY=REPLACEME
-GCP_COUNTER_LIMIT=500000
-GCP_LANGUAGE=de-DE
-GCP_VOICE_NAME=de-DE-Wavenet-D
-GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/google_json
-AUDIO_EXPIRY=365
 ```
+Create a `config_docker.json` file with the following structure
+```json
+{
+  "gcp_counter_limit": 500000,
+  "languages": {
+    "de": {
+      "gcp_language": "de-DE",
+      "gcp_voice_name": "de-DE-Wavenet-D"
+    }
+  },
+  "google_application_credentials": "/run/secrets/google_json",
+  "audio_expiry": 365
+}
+```
+Languages can be enabled by adding an entry in `languages` with appropriate `gcp_language` and `gcp_voice_name` fields.
+
 Get your GCP credentials enabled to use the Text-To-Speech API, save them as a file and set their location (on the host machine) in the `docker-compose.yml` in the `google_json` secret.
 
 Create a folder `/mnt/minio` or change the directory in the `docker-compose.yml` file to a directory of your choosing.

@@ -18,6 +18,9 @@ google-cloud-texttospeech = "^2.3.0"
 mypy = "^0.812"
 isort = "^5.8.0"
 
+[tool.isort]
+profile = "black"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

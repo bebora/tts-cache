@@ -1,7 +1,7 @@
 import io
 from datetime import datetime
+from hashlib import sha256
 from threading import Lock
-from urllib.parse import quote
 
 from fastapi import APIRouter, Response
 from fastapi.logger import logger as fastapi_logger
@@ -22,6 +22,7 @@ from app.utils import (
 
 class AudioRequest(BaseModel):
     text: str = "Example"
+    language: str = "de"
 
 
 def create_speech_router(
@@ -38,9 +39,14 @@ def create_speech_router(
 
     @router.post("/speech/")
     def speech(audio_request: AudioRequest) -> Response:
+        if audio_request.language not in settings.languages.keys():
+            return Response("Language not supported", status_code=403)
+
         text = audio_request.text.lower()
-        real_key_suffix = quote(text, safe="")
-        real_key = f"{settings.audio_folder}/{real_key_suffix}"
+        folder_key = sha256(text.encode()).hexdigest()
+        object_folder = f"{settings.audio_folder}/{audio_request.language}/{folder_key}"
+        audio_path = f"{object_folder}/audio"
+        text_path = f"{object_folder}/text"
 
         client: Minio = Minio(
             settings.minio_url,
@@ -90,7 +96,7 @@ def create_speech_router(
                         working_month,
                     )
                 audio_object_already_exists = object_exists(
-                    client, settings.bucket_name, real_key
+                    client, settings.bucket_name, audio_path
                 )
                 if not audio_object_already_exists:
                     new_counter = counter + len(text)
@@ -117,8 +123,8 @@ def create_speech_router(
                 try:
                     content = obtain_gcp_audio(
                         text,
-                        settings.gcp_language,
-                        settings.gcp_voice_name,
+                        settings.languages.get(audio_request.language).gcp_language,
+                        settings.languages.get(audio_request.language).gcp_voice_name,
                         settings.google_application_credentials,
                     )
                 except AudioFetchException as e:
@@ -130,23 +136,31 @@ def create_speech_router(
                 with audio_lock:
                     client.put_object(
                         settings.bucket_name,
-                        real_key,
+                        audio_path,
                         io.BytesIO(content),
                         len(content),
+                    )
+                    client.put_object(
+                        settings.bucket_name,
+                        text_path,
+                        io.BytesIO(text.encode("utf-8")),
+                        len(text),
                     )
                     fastapi_logger.debug(
                         f"'Successfully uploaded object '{text}' to bucket '{settings.bucket_name}'."
                     )
 
             try:
-                key_response = client.get_object(settings.bucket_name, real_key)
-                stored_content = key_response.data
+                key_audio_response = client.get_object(settings.bucket_name, audio_path)
+                stored_audio_content = key_audio_response.data
             finally:
-                key_response.close()
-                key_response.release_conn()
+                key_audio_response.close()
+                key_audio_response.release_conn()
 
             fastapi_logger.debug("Media served")
-            return Response(stored_content, status_code=200, media_type="audio/opus")
+            return Response(
+                stored_audio_content, status_code=200, media_type="audio/opus"
+            )
         except Exception as e:
             fastapi_logger.error(f"{e}")
             return Response("Unable to serve content", status_code=500)

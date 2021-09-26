@@ -6,6 +6,10 @@ services:
       - "22243:80"
     depends_on:
       - minio
+    volumes:
+      - type: bind
+        source: ./config_docker.json
+        target: /app/config.json
     env_file:
       - .env.docker
     secrets:
